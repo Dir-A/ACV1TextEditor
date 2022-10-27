@@ -29,3 +29,20 @@ std::wstring StrToWStr(std::string& strString, UINT uCodePage)
 	delete[] buffer;
 	return result;
 }
+
+//Essentially it is still call MultiByteToWideChar / WideCharToMultiByte
+std::wstring StrToWStr_CVT(std::string& strString, unsigned int uCodePage)
+{
+	std::string loacal = std::to_string(uCodePage);
+	loacal.insert(0, ".");
+	std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> cvtString(new std::codecvt_byname<wchar_t, char, mbstate_t>(loacal));
+	return cvtString.from_bytes(strString);
+}
+
+std::string WStrToStr_CVT(std::wstring& wstrString, unsigned int uCodePage)
+{
+	std::string loacal = std::to_string(uCodePage);
+	loacal.insert(0, ".");
+	std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> cvtString(new std::codecvt_byname<wchar_t, char, mbstate_t>(loacal));
+	return cvtString.to_bytes(wstrString);
+}

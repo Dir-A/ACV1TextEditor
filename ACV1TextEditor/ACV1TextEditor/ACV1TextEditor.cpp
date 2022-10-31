@@ -47,8 +47,7 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 {
 	unsigned int position = 0;
 	vector<string> scriptLineList;
-	vector<wstring> transLineList;
-	vector<unsigned int> transPositionList;
+	map<unsigned int, wstring> transLineMAP;
 	auto cvtUTF8 = locale(locale::empty(), new codecvt_utf8<wchar_t, 0x10ffff, codecvt_mode(consume_header | generate_header | little_endian)>);
 
 	//Get Trans Text
@@ -61,7 +60,7 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 			if (wLine.find(L"Count:") != string::npos)
 			{
 				swscanf_s(wLine.c_str(), L"Count:%d", &position);
-				transPositionList.push_back(position);
+				transLineMAP[position];
 				continue;
 			}
 
@@ -70,24 +69,17 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 				wLine = wLine.substr(0x4);
 				if (!wLine.empty())
 				{
-					transLineList.push_back(wLine);
+					transLineMAP[position] = wLine;
 				}
 			}
-
 		}
+
 		transFile.close();
 	}
 	else
 	{
 		return false;
 	}
-
-
-	if (transPositionList.size() != transLineList.size())
-	{
-		return false;
-	}
-
 
 	//Read Script By PerLine
 	ifstream scriptFile(strFileName);
@@ -110,10 +102,11 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 	if (newScriptFile.is_open())
 	{
 		//Replace Trans Text
-		for (size_t i = 0; i < transPositionList.size(); i++)
+		for (auto& p : transLineMAP)
 		{
-			scriptLineList[transPositionList[i] - 1] = WStrToStr(transLineList[i], uCodePage);
+			scriptLineList[p.first - 1] = WStrToStr(p.second, uCodePage);
 		}
+
 		//Write Back All Line
 		for (auto& line : scriptLineList)
 		{

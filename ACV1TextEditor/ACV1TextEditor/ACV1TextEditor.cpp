@@ -11,19 +11,20 @@ bool DumpText(wstring& strFileNmae, unsigned int uCodePage, bool isDoubleLine)
 	transFile.imbue(cvtUTF8);
 	if (transFile.is_open() && scriptFile.is_open())
 	{
+		wstring wLine;
 		for (std::string mLine; getline(scriptFile, mLine); lineCount++)
 		{
-			if (mLine.size() <= 0)
+			if (mLine.empty())
 			{
 				continue;
 			}
 
-			if (((unsigned char)mLine[0] >= (unsigned char)0x7B) || 
+			if (((unsigned char)mLine[0] >= (unsigned char)0x7B) ||
 				mLine.find("CS \"") == 0 ||
 				mLine.find("SELECT \"") == 0
 				)
 			{
-				wstring wLine = StrToWStr(mLine, uCodePage);
+				wLine = StrToWStr(mLine, uCodePage);
 				transFile << L"Count:" << setw(0x8) << setfill(L'0') << lineCount << endl;
 				transFile << L"Raw:" << wLine << endl;
 				if (isDoubleLine)
@@ -65,13 +66,13 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 				continue;
 			}
 
-			if (wLine.find(L"Count:") != string::npos)
+			if (wLine.find(L"Count:") == 0)
 			{
 				swscanf_s(wLine.c_str(), L"Count:%d", &position);
 				continue;
 			}
 
-			if (wLine.find(L"Tra:") != string::npos)
+			if (wLine.find(L"Tra:") == 0)
 			{
 				wLine = wLine.substr(0x4);
 				if (!wLine.empty())
@@ -96,6 +97,7 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 		{
 			scriptLineList.push_back(line);
 		}
+
 		scriptFile.close();
 	}
 	else
@@ -103,22 +105,22 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 		return false;
 	}
 
-
 	//Out Script As New File
 	ofstream newScriptFile(strFileName + L".new", ios::binary);
 	if (newScriptFile.is_open())
 	{
 		//Replace Trans Text
-		for (auto& p : transLineMAP)
+		for (auto& iteTrans : transLineMAP)
 		{
-			scriptLineList[p.first - 1] = WStrToStr(p.second, uCodePage);
+			scriptLineList[iteTrans.first - 1] = WStrToStr(iteTrans.second, uCodePage);
 		}
 
 		//Write Back All Line
-		for (auto& line : scriptLineList)
+		for (auto& iteLine : scriptLineList)
 		{
-			newScriptFile << line << '\n';
+			newScriptFile << iteLine << '\n';
 		}
+
 		newScriptFile.close();
 	}
 	else

@@ -18,7 +18,10 @@ bool DumpText(wstring& strFileNmae, unsigned int uCodePage, bool isDoubleLine)
 				continue;
 			}
 
-			if ((unsigned char)mLine[0] >= (unsigned char)0x7B)
+			if (((unsigned char)mLine[0] >= (unsigned char)0x7B) || 
+				mLine.find("CS \"") == 0 ||
+				mLine.find("SELECT \"") == 0
+				)
 			{
 				wstring wLine = StrToWStr(mLine, uCodePage);
 				transFile << L"Count:" << setw(0x8) << setfill(L'0') << lineCount << endl;
@@ -45,7 +48,6 @@ bool DumpText(wstring& strFileNmae, unsigned int uCodePage, bool isDoubleLine)
 
 bool InsetText(wstring& strFileName, unsigned int uCodePage)
 {
-	unsigned int position = 0;
 	vector<string> scriptLineList;
 	map<unsigned int, wstring> transLineMAP;
 	auto cvtUTF8 = locale(locale::empty(), new codecvt_utf8<wchar_t, 0x10ffff, codecvt_mode(consume_header | generate_header | little_endian)>);
@@ -55,12 +57,17 @@ bool InsetText(wstring& strFileName, unsigned int uCodePage)
 	transFile.imbue(cvtUTF8);
 	if (transFile.is_open())
 	{
+		unsigned int position = 0;
 		for (std::wstring wLine; getline(transFile, wLine);)
 		{
+			if (wLine.empty())
+			{
+				continue;
+			}
+
 			if (wLine.find(L"Count:") != string::npos)
 			{
 				swscanf_s(wLine.c_str(), L"Count:%d", &position);
-				transLineMAP[position];
 				continue;
 			}
 
